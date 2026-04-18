@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "charts": [
+    {
+      "id": "WA412",
+      "code": "WA412",
+      "displayName": "Rottnest Island",
+      "pdf": "WA412_rottnest_island.pdf",
+      "georef": "WA412_rottnest_island.json"
+    },
+    {
+      "id": "WA001",
+      "code": "WA001",
+      "displayName": "Ocean Reef to Cape Peron",
+      "pdf": "WA001_ocean_reef_to_cape_peron.pdf",
+      "georef": "WA001_ocean_reef_to_cape_peron.json"
+    },
+    {
+      "id": "WA913",
+      "code": "WA913",
+      "displayName": "Cape Peron to Dawesville",
+      "pdf": "WA913_cape_peron_to_dawesville.pdf",
+      "georef": "WA913_cape_peron_to_dawesville.json"
+    }
+  ]
+}

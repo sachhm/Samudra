@@ -1,0 +1,15 @@
+{
+  "projection": { "type": "utm", "zone": 50, "hemisphere": "south" },
+  "wgs84_corners": {
+    "top_left":     { "lat": -31.75, "lon": 115.65 },
+    "top_right":    { "lat": -31.75, "lon": 115.85 },
+    "bottom_left":  { "lat": -32.30, "lon": 115.65 },
+    "bottom_right": { "lat": -32.30, "lon": 115.85 }
+  },
+  "pixel_corners": {
+    "top_left":     [120, 80],
+    "top_right":    [3456, 80],
+    "bottom_left":  [120, 2440],
+    "bottom_right": [3456, 2440]
+  }
+}
