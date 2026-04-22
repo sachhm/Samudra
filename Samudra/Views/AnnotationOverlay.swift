@@ -11,6 +11,7 @@ struct AnnotationOverlay: View {
     @Binding var pendingNoteText: String
     @Binding var showNoteEditor: Bool
     let onEraseInk: (CGPoint) -> Void
+    let projection: UTMProjection?
 
     @State private var eraserPoint: CGPoint?
     @State private var draggingID: UUID?
@@ -33,14 +34,20 @@ struct AnnotationOverlay: View {
             }
 
             ForEach(Array(hazards.enumerated()), id: \.element.id) { idx, hazard in
-                HazardMark(hazard: hazard, index: idx + 1, selected: draggingID == hazard.id)
+                HazardMark(hazard: hazard, index: idx + 1, selected: draggingID == hazard.id, coord: coordFor(hazard.center))
                     .position(hazard.center)
                     .gesture(dragGesture(for: hazard))
                     .allowsHitTesting(tool == .hazard || tool == .note)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(
+                        coordFor(hazard.center).map { "Hazard \(idx + 1) at \(CoordinateFormatter.speech($0))" }
+                        ?? "Hazard \(idx + 1)"
+                    )
+                    .accessibilityHint("Drag to reposition")
             }
 
             ForEach(Array(notes.enumerated()), id: \.element.id) { idx, note in
-                NTMMark(note: note, index: idx + 1, selected: draggingID == note.id)
+                NTMMark(note: note, index: idx + 1, selected: draggingID == note.id, coord: coordFor(note.position))
                     .position(note.position)
                     .gesture(dragGesture(for: note))
                     .onTapGesture {
@@ -49,6 +56,12 @@ struct AnnotationOverlay: View {
                         showNoteEditor = true
                     }
                     .allowsHitTesting(tool == .hazard || tool == .note)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(
+                        coordFor(note.position).map { "Notice to Mariner \(idx + 1): \(note.text) at \(CoordinateFormatter.speech($0))" }
+                        ?? "Notice to Mariner \(idx + 1): \(note.text)"
+                    )
+                    .accessibilityHint("Double tap to edit, drag to reposition")
             }
 
             if tool == .eraser, let p = eraserPoint {
@@ -71,6 +84,11 @@ struct AnnotationOverlay: View {
                     eraserPoint = nil
                 }
             }
+    }
+
+    private func coordFor(_ p: CGPoint) -> Coordinate? {
+        guard let projection, projection.contains(p) else { return nil }
+        return projection.pixelToLatLon(p)
     }
 
     private func eraseAt(_ point: CGPoint) {
@@ -127,6 +145,7 @@ private struct HazardMark: View {
     let hazard: HazardAnnotation
     let index: Int
     let selected: Bool
+    let coord: Coordinate?
 
     var body: some View {
         ZStack {
@@ -145,15 +164,23 @@ private struct HazardMark: View {
                 )
                 .frame(width: hazard.radius * 2, height: hazard.radius * 2)
 
-            // Small numeric tag offset above
-            Text("\(index)")
-                .font(.caption2.weight(.semibold))
-                .monospacedDigit()
-                .foregroundStyle(ChartPalette.hazardRed)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .glassEffect(.regular, in: Capsule())
-                .offset(y: -hazard.radius - 16)
+            // Numeric tag + optional coord subtitle offset above
+            VStack(spacing: 2) {
+                Text("\(index)")
+                    .font(.caption2.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(ChartPalette.hazardRed)
+                if let coord {
+                    Text(CoordinateFormatter.ddm(coord))
+                        .font(.system(size: 9, weight: .regular))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .glassEffect(.regular, in: Capsule())
+            .offset(y: -hazard.radius - 16)
         }
     }
 }
@@ -164,6 +191,7 @@ private struct NTMMark: View {
     let note: NTMAnnotation
     let index: Int
     let selected: Bool
+    let coord: Coordinate?
 
     var body: some View {
         VStack(spacing: 4) {
@@ -179,13 +207,21 @@ private struct NTMMark: View {
                     .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
             }
 
-            Text(note.text)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .glassEffect(.regular, in: Capsule())
+            VStack(spacing: 0) {
+                Text(note.text)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                if let coord {
+                    Text(CoordinateFormatter.ddm(coord))
+                        .font(.system(size: 9, weight: .regular))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .glassEffect(.regular, in: Capsule())
         }
     }
 }

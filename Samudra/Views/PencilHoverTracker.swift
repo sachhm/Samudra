@@ -27,7 +27,8 @@ struct PencilHoverTracker: UIViewRepresentable {
         @objc func handle(_ g: UIHoverGestureRecognizer) {
             switch g.state {
             case .began, .changed:
-                binding?.wrappedValue = g.location(in: g.view)
+                // Emit in window coordinates so downstream UIView.convert(_, from: nil) works.
+                binding?.wrappedValue = g.location(in: nil)
             case .ended, .cancelled, .failed:
                 // Retain last known location for squeeze fallback
                 break

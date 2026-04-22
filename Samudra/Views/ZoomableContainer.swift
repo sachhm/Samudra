@@ -25,6 +25,7 @@ struct ZoomableContainer<Content: View>: UIViewRepresentable {
         host.view.backgroundColor = .clear
         host.view.frame = CGRect(origin: .zero, size: contentSize)
         host.view.translatesAutoresizingMaskIntoConstraints = true
+        host.view.accessibilityIdentifier = "samudra.chartHost"
         scroll.addSubview(host.view)
         scroll.contentSize = contentSize
         context.coordinator.hostingController = host

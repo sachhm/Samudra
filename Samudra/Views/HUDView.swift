@@ -6,45 +6,54 @@ struct HUDView: View {
     let ntmCount: Int
     let zoomPercent: Int
     let chartName: String
+    let pencilLatLong: Coordinate?
 
     var body: some View {
-        HStack(spacing: 10) {
-            // Chart pill
-            HStack(spacing: 6) {
-                Image(systemName: "map")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-                Text(chartName)
-                    .font(.footnote)
-                    .foregroundStyle(.primary)
+        GlassEffectContainer(spacing: 14) {
+            HStack(spacing: 10) {
+                // Chart pill
+                HStack(spacing: 6) {
+                    Image(systemName: "map")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    Text(chartName)
+                        .font(.footnote)
+                        .foregroundStyle(.primary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .glassEffect(.regular, in: Capsule())
+
+                // Coord pill (only when pencilLatLong present)
+                if let coord = pencilLatLong {
+                    CoordinateHUDPill(coordinate: coord)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+
+                Spacer()
+
+                // Zoom + marks pill
+                HStack(spacing: 12) {
+                    Text("\(zoomPercent)%")
+                        .font(.footnote.weight(.medium))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                        .contentTransition(.numericText())
+
+                    Capsule().fill(.quaternary).frame(width: 1, height: 12)
+
+                    tally(symbol: "exclamationmark.triangle.fill",
+                          count: hazardCount,
+                          tint: ChartPalette.hazardRed)
+
+                    tally(symbol: "mappin.circle.fill",
+                          count: ntmCount,
+                          tint: ChartPalette.noteYellow)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .glassEffect(.regular, in: Capsule())
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-            .glassEffect(.regular, in: Capsule())
-
-            Spacer()
-
-            // Zoom + marks pill
-            HStack(spacing: 12) {
-                Text("\(zoomPercent)%")
-                    .font(.footnote.weight(.medium))
-                    .monospacedDigit()
-                    .foregroundStyle(.primary)
-                    .contentTransition(.numericText())
-
-                Capsule().fill(.quaternary).frame(width: 1, height: 12)
-
-                tally(symbol: "exclamationmark.triangle.fill",
-                      count: hazardCount,
-                      tint: ChartPalette.hazardRed)
-
-                tally(symbol: "mappin.circle.fill",
-                      count: ntmCount,
-                      tint: ChartPalette.noteYellow)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-            .glassEffect(.regular, in: Capsule())
         }
     }
 

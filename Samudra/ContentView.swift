@@ -27,17 +27,24 @@ struct ContentView: View {
 
     @State private var showArc: Bool = false
     @State private var pencilLocation: CGPoint?
+    @State private var pencilLatLong: Coordinate? = nil
     @State private var arcCenter: CGPoint = .zero
     @State private var screenSize: CGSize = .zero
+    @State private var currentChart: ChartDocument = ChartCatalog.default
 
     private let chartSize = CGSize(width: 4096, height: 2893)
-    private let chartName = "WA412 ROTTNEST IS."
 
     var body: some View {
         GeometryReader { geo in
             content
                 .onAppear { screenSize = geo.size }
                 .onChange(of: geo.size) { _, newSize in screenSize = newSize }
+                .onChange(of: pencilLocation) { _, _ in
+                    pencilLatLong = projectScreenPointToLatLon(pencilLocation)
+                }
+                .onChange(of: currentChart.id) { _, _ in
+                    pencilLatLong = projectScreenPointToLatLon(pencilLocation)
+                }
         }
     }
 
@@ -72,7 +79,8 @@ struct ContentView: View {
                         editingNoteID: $editingNoteID,
                         pendingNoteText: $pendingNoteText,
                         showNoteEditor: $showNoteEditor,
-                        onEraseInk: eraseInk
+                        onEraseInk: eraseInk,
+                        projection: currentProjection
                     )
                 }
                 .frame(width: chartSize.width, height: chartSize.height)
@@ -125,11 +133,26 @@ struct ContentView: View {
                     hazardCount: hazards.count,
                     ntmCount: notes.count,
                     zoomPercent: zoomPercent,
-                    chartName: chartName
+                    chartName: "\(currentChart.code) \(currentChart.displayName.uppercased())",
+                    pencilLatLong: pencilLatLong
                 )
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
                 Spacer()
+            }
+
+            // Bottom-left scale bar (screen-space, ignores chart rotation)
+            VStack {
+                Spacer()
+                HStack {
+                    if let mpp = metersPerScreenPoint {
+                        ScaleBarView(metersPerScreenPoint: mpp)
+                            .padding(.leading, 18)
+                            .padding(.bottom, 18)
+                            .transition(.opacity)
+                    }
+                    Spacer()
+                }
             }
         }
         .onAppear {
@@ -223,6 +246,46 @@ struct ContentView: View {
     private var chartImage: Image {
         let ui = UIImage(named: "sample-chart") ?? PlaceholderChart.render(size: chartSize)
         return Image(uiImage: ui)
+    }
+
+    private var currentProjection: UTMProjection? {
+        guard let georef = currentChart.georef else { return nil }
+        return UTMProjection(georef: georef)
+    }
+
+    private var metersPerScreenPoint: Double? {
+        guard let georef = currentChart.georef else { return nil }
+        let proj = UTMProjection(georef: georef)
+        // Distance in meters between (pixel 0,0) and (pixel 100,0), via lat/lon.
+        let p0 = proj.pixelToLatLon(CGPoint(x: 0, y: 0))
+        let p1 = proj.pixelToLatLon(CGPoint(x: 100, y: 0))
+        let metersPer100ChartPixels = Geodesy.distance(p0, p1)
+        // chartPixels per screenPoint = 1 / zoomScale
+        guard zoomScale > 0 else { return nil }
+        return (metersPer100ChartPixels / 100) / zoomScale
+    }
+
+    private func projectScreenPointToLatLon(_ screenPoint: CGPoint?) -> Coordinate? {
+        guard let screenPoint, let projection = currentProjection else { return nil }
+        guard let chartView = chartHostView() else { return nil }
+        let chartPixel = chartView.convert(screenPoint, from: nil)
+        guard projection.contains(chartPixel) else { return nil }
+        return projection.pixelToLatLon(chartPixel)
+    }
+
+    private func chartHostView() -> UIView? {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first
+        else { return nil }
+        return Self.findChartHost(window)
+    }
+
+    private static func findChartHost(_ view: UIView) -> UIView? {
+        if view.accessibilityIdentifier == "samudra.chartHost" { return view }
+        for sub in view.subviews {
+            if let hit = findChartHost(sub) { return hit }
+        }
+        return nil
     }
 
     private func eraseInk(at point: CGPoint) {
