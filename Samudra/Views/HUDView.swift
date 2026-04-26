@@ -5,24 +5,51 @@ struct HUDView: View {
     let hazardCount: Int
     let ntmCount: Int
     let zoomPercent: Int
-    let chartName: String
+    let currentChart: ChartDocument
+    let onSelectChart: (ChartDocument) -> Void
     let pencilLatLong: Coordinate?
 
     var body: some View {
         GlassEffectContainer(spacing: 14) {
             HStack(spacing: 10) {
-                // Chart pill
-                HStack(spacing: 6) {
-                    Image(systemName: "map")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    Text(chartName)
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
+                // Chart pill — Menu for picker
+                Menu {
+                    Section("Charts") {
+                        ForEach(ChartCatalog.all, id: \.id) { chart in
+                            Button {
+                                guard chart.id != currentChart.id else { return }
+                                onSelectChart(chart)
+                            } label: {
+                                if chart.id == currentChart.id {
+                                    SwiftUI.Label("\(chart.code) — \(chart.displayName)", systemImage: "checkmark")
+                                } else {
+                                    Text("\(chart.code) — \(chart.displayName)")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "map")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Text("\(currentChart.code)  \(currentChart.displayName.uppercased())")
+                            .font(.footnote)
+                            .foregroundStyle(.primary)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                    .glassEffect(.regular.interactive(), in: Capsule())
+                    .contentShape(Capsule())
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 9)
-                .glassEffect(.regular, in: Capsule())
+                .menuOrder(.fixed)
+                .buttonStyle(.plain)
+                .accessibilityLabel("Chart")
+                .accessibilityValue("\(currentChart.code) \(currentChart.displayName)")
+                .accessibilityHint("Choose a different chart")
 
                 // Coord pill (only when pencilLatLong present)
                 if let coord = pencilLatLong {

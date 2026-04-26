@@ -31,8 +31,8 @@ struct ContentView: View {
     @State private var arcCenter: CGPoint = .zero
     @State private var screenSize: CGSize = .zero
     @State private var currentChart: ChartDocument = ChartCatalog.default
-
-    private let chartSize = CGSize(width: 4096, height: 2893)
+    @State private var chartUIImage: UIImage? = nil
+    @State private var chartSize: CGSize = CGSize(width: 4096, height: 2893)
 
     var body: some View {
         GeometryReader { geo in
@@ -133,7 +133,8 @@ struct ContentView: View {
                     hazardCount: hazards.count,
                     ntmCount: notes.count,
                     zoomPercent: zoomPercent,
-                    chartName: "\(currentChart.code) \(currentChart.displayName.uppercased())",
+                    currentChart: currentChart,
+                    onSelectChart: switchChart,
                     pencilLatLong: pencilLatLong
                 )
                 .padding(.horizontal, 16)
@@ -158,6 +159,7 @@ struct ContentView: View {
         .onAppear {
             canvasView.delegate = CanvasDelegateBridge.shared
             CanvasDelegateBridge.shared.onChange = { refreshUndo() }
+            loadChart(currentChart)
         }
         .alert("Notice to Mariner", isPresented: $showNoteEditor) {
             TextField("Description", text: $pendingNoteText)
@@ -244,8 +246,32 @@ struct ContentView: View {
     }
 
     private var chartImage: Image {
+        if let img = chartUIImage {
+            return Image(uiImage: img)
+        }
         let ui = UIImage(named: "sample-chart") ?? PlaceholderChart.render(size: chartSize)
         return Image(uiImage: ui)
+    }
+
+    private func loadChart(_ chart: ChartDocument) {
+        currentChart = chart
+        if let raster = PDFRasterizer.render(chart, scale: 1.5) {
+            chartUIImage = raster.image
+            chartSize = raster.size
+        } else {
+            chartUIImage = nil
+            chartSize = CGSize(width: 4096, height: 2893)
+        }
+    }
+
+    private func switchChart(to chart: ChartDocument) {
+        guard chart.id != currentChart.id else { return }
+        canvasView.drawing = PKDrawing()
+        canvasView.undoManager?.removeAllActions()
+        hazards.removeAll()
+        notes.removeAll()
+        refreshUndo()
+        loadChart(chart)
     }
 
     private var currentProjection: UTMProjection? {
