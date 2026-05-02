@@ -4,6 +4,7 @@ import PencilKit
 struct AnnotationOverlay: View {
     @Binding var hazards: [HazardAnnotation]
     @Binding var notes: [NTMAnnotation]
+    @Binding var measurements: [Measurement]
     let tool: ToolMode
     let chartSize: CGSize
     let canvasView: PKCanvasView
@@ -15,11 +16,12 @@ struct AnnotationOverlay: View {
 
     @State private var eraserPoint: CGPoint?
     @State private var draggingID: UUID?
+    @State private var pendingMeasureA: CGPoint?
     private let eraserRadius: CGFloat = 28
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            if tool == .hazard || tool == .note {
+            if tool == .hazard || tool == .note || tool == .measure {
                 Color.clear
                     .contentShape(Rectangle())
                     .onTapGesture { location in
@@ -31,6 +33,24 @@ struct AnnotationOverlay: View {
                 Color.clear
                     .contentShape(Rectangle())
                     .gesture(eraserDrag)
+            }
+
+            // Measurements (committed)
+            ForEach(Array(measurements.enumerated()), id: \.element.id) { idx, m in
+                MeasurementMark(
+                    measurement: m,
+                    index: idx + 1,
+                    projection: projection,
+                    selected: draggingID == m.id
+                )
+                .allowsHitTesting(false)
+            }
+
+            // Pending measurement first endpoint
+            if tool == .measure, let p = pendingMeasureA {
+                MeasurePendingMark()
+                    .position(p)
+                    .allowsHitTesting(false)
             }
 
             ForEach(Array(hazards.enumerated()), id: \.element.id) { idx, hazard in
@@ -94,6 +114,10 @@ struct AnnotationOverlay: View {
     private func eraseAt(_ point: CGPoint) {
         hazards.removeAll { hypot($0.center.x - point.x, $0.center.y - point.y) <= $0.radius }
         notes.removeAll { hypot($0.position.x - point.x, $0.position.y - point.y) <= 40 }
+        measurements.removeAll { m in
+            hypot(m.a.x - point.x, m.a.y - point.y) <= eraserRadius
+                || hypot(m.b.x - point.x, m.b.y - point.y) <= eraserRadius
+        }
         onEraseInk(point)
     }
 
@@ -113,6 +137,18 @@ struct AnnotationOverlay: View {
             pendingNoteText = note.text
             showNoteEditor = true
             UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        case .measure:
+            if let a = pendingMeasureA {
+                let m = Measurement(a: a, b: location)
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                    measurements.append(m)
+                }
+                pendingMeasureA = nil
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            } else {
+                pendingMeasureA = location
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
         default:
             break
         }
@@ -238,5 +274,94 @@ private struct EraserCursor: View {
                 Circle().fill(Color.secondary.opacity(0.08))
             )
             .frame(width: radius * 2, height: radius * 2)
+    }
+}
+
+// MARK: - Measurement
+
+private struct MeasurementMark: View {
+    let measurement: Measurement
+    let index: Int
+    let projection: UTMProjection?
+    let selected: Bool
+
+    private var midpoint: CGPoint {
+        CGPoint(x: (measurement.a.x + measurement.b.x) / 2,
+                y: (measurement.a.y + measurement.b.y) / 2)
+    }
+
+    private var labelText: String? {
+        guard let projection,
+              projection.contains(measurement.a),
+              projection.contains(measurement.b)
+        else { return nil }
+        let coordA = projection.pixelToLatLon(measurement.a)
+        let coordB = projection.pixelToLatLon(measurement.b)
+        let meters = Geodesy.distance(coordA, coordB)
+        let nm = meters / 1852
+        let bearing = Geodesy.bearing(coordA, coordB)
+        let nmStr: String
+        if nm >= 1 {
+            nmStr = String(format: "%.2f nm", nm)
+        } else {
+            nmStr = String(format: "%d m", Int(meters.rounded()))
+        }
+        return String(format: "%@ · %03d°T", nmStr, Int(bearing.rounded()))
+    }
+
+    var body: some View {
+        ZStack {
+            Path { path in
+                path.move(to: measurement.a)
+                path.addLine(to: measurement.b)
+            }
+            .stroke(
+                ChartPalette.routeBlue,
+                style: StrokeStyle(lineWidth: 2, dash: [6, 4])
+            )
+
+            // Endpoint markers
+            Circle()
+                .fill(ChartPalette.routeBlue)
+                .frame(width: 10, height: 10)
+                .position(measurement.a)
+            Circle()
+                .fill(ChartPalette.routeBlue)
+                .frame(width: 10, height: 10)
+                .position(measurement.b)
+
+            if let labelText {
+                Text(labelText)
+                    .font(.caption2.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(.regularMaterial, in: Capsule())
+                    .overlay(Capsule().strokeBorder(.quaternary, lineWidth: 0.5))
+                    .position(midpoint)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            labelText.map { "Measurement \(index): \($0)" } ?? "Measurement \(index)"
+        )
+    }
+}
+
+private struct MeasurePendingMark: View {
+    var body: some View {
+        ZStack {
+            Circle()
+                .strokeBorder(ChartPalette.routeBlue, lineWidth: 2)
+                .frame(width: 16, height: 16)
+            Circle()
+                .fill(ChartPalette.routeBlue.opacity(0.3))
+                .frame(width: 16, height: 16)
+            Text("A")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(ChartPalette.routeBlue)
+                .offset(y: -14)
+        }
     }
 }

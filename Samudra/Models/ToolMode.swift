@@ -4,6 +4,7 @@ enum ToolMode: String, CaseIterable, Identifiable {
     case draw
     case hazard
     case note
+    case measure
     case eraser
 
     var id: String { rawValue }
@@ -13,6 +14,7 @@ enum ToolMode: String, CaseIterable, Identifiable {
         case .draw: "Draw"
         case .hazard: "Hazard"
         case .note: "Note"
+        case .measure: "Measure"
         case .eraser: "Erase"
         }
     }
@@ -22,6 +24,7 @@ enum ToolMode: String, CaseIterable, Identifiable {
         case .draw: "pencil.tip"
         case .hazard: "exclamationmark.triangle"
         case .note: "mappin"
+        case .measure: "ruler"
         case .eraser: "eraser"
         }
     }
@@ -31,6 +34,7 @@ enum ToolMode: String, CaseIterable, Identifiable {
         case .draw: "pencil.tip"
         case .hazard: "exclamationmark.triangle.fill"
         case .note: "mappin.circle.fill"
+        case .measure: "ruler.fill"
         case .eraser: "eraser.fill"
         }
     }
@@ -40,6 +44,7 @@ enum ToolMode: String, CaseIterable, Identifiable {
         case .draw: ChartPalette.routeBlue
         case .hazard: ChartPalette.hazardRed
         case .note: ChartPalette.noteYellow
+        case .measure: Color(uiColor: .systemTeal)
         case .eraser: ChartPalette.textSecondary
         }
     }

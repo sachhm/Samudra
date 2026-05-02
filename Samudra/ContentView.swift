@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var canvasView = PKCanvasView()
     @State private var hazards: [HazardAnnotation] = []
     @State private var notes: [NTMAnnotation] = []
+    @State private var measurements: [Measurement] = []
     @State private var canUndo: Bool = false
     @State private var canRedo: Bool = false
 
@@ -73,6 +74,7 @@ struct ContentView: View {
                     AnnotationOverlay(
                         hazards: $hazards,
                         notes: $notes,
+                        measurements: $measurements,
                         tool: tool,
                         chartSize: chartSize,
                         canvasView: canvasView,
@@ -187,6 +189,7 @@ struct ContentView: View {
                 canvasView.drawing = PKDrawing()
                 hazards.removeAll()
                 notes.removeAll()
+                measurements.removeAll()
                 refreshUndo()
             }
         }
@@ -270,6 +273,7 @@ struct ContentView: View {
         canvasView.undoManager?.removeAllActions()
         hazards.removeAll()
         notes.removeAll()
+        measurements.removeAll()
         refreshUndo()
         loadChart(chart)
     }
