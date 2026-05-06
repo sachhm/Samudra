@@ -1,0 +1,56 @@
+# WA Transport Maritime Chart manifest source.
+#
+# Each [[chart]] entry describes one chart to fetch + bundle.
+# `fetch_charts.py` reads this file, downloads each PDF to
+# Samudra/Charts/{filename}.pdf, and writes the matching
+# {filename}.json georeference sidecar. The aggregate manifest.json
+# is regenerated in deterministic order.
+#
+# Corner values are WGS84 lat/lon decimal degrees, extracted from
+# each chart's printed graticule. Charts are Mercator/UTM Zone 50
+# South (Perth area).
+#
+# Source pages:
+#   https://www.transport.wa.gov.au/marine/charts-warnings-current-conditions/
+#     coastal-data-charts/nautical-charts
+
+[defaults]
+projection_type = "utm"
+projection_zone = 50
+projection_hemisphere = "south"
+# Pixel corners default to the rasterized image rect minus a small
+# inner padding. Override per chart when title blocks intrude further.
+default_pixel_corners = [120, 80, 3456, 2440]  # [left, top, right, bottom]
+
+[[chart]]
+id = "WA412"
+code = "WA412"
+display_name = "Rottnest Island"
+filename = "WA412_rottnest_island"
+source_url = "https://www.transport.wa.gov.au/imarine/wa412-rottnest.pdf"
+wgs84_top_left     = [-31.9333, 115.4167]
+wgs84_top_right    = [-31.9333, 115.6333]
+wgs84_bottom_left  = [-32.0500, 115.4167]
+wgs84_bottom_right = [-32.0500, 115.6333]
+
+[[chart]]
+id = "WA001"
+code = "WA001"
+display_name = "Ocean Reef to Cape Peron"
+filename = "WA001_ocean_reef_to_cape_peron"
+source_url = "https://www.transport.wa.gov.au/imarine/wa001-ocean-reef-to-cape-peron.pdf"
+wgs84_top_left     = [-31.7333, 115.4167]
+wgs84_top_right    = [-31.7333, 115.8500]
+wgs84_bottom_left  = [-32.2667, 115.4167]
+wgs84_bottom_right = [-32.2667, 115.8500]
+
+[[chart]]
+id = "WA913"
+code = "WA913"
+display_name = "Cape Peron to Dawesville"
+filename = "WA913_cape_peron_to_dawesville"
+source_url = "https://www.transport.wa.gov.au/imarine/wa913-cape-peron-to-dawesville.pdf"
+wgs84_top_left     = [-32.2167, 115.4667]
+wgs84_top_right    = [-32.2167, 115.7500]
+wgs84_bottom_left  = [-32.6333, 115.4667]
+wgs84_bottom_right = [-32.6333, 115.7500]

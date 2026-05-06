@@ -48,6 +48,9 @@ struct ExportPayload {
     let drawingPNG: UIImage?
     let hazards: [HazardAnnotation]
     let ntms: [NTMAnnotation]
+    let measurements: [Measurement]
+    let projection: UTMProjection?
+    let chartId: String
     let generatedAt: Date
 }
 

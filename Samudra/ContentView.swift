@@ -337,7 +337,7 @@ struct ContentView: View {
     }
 
     private func handleExport(format: ExportFormat) {
-        let baseImage = UIImage(named: "sample-chart") ?? PlaceholderChart.render(size: chartSize)
+        let baseImage = chartUIImage ?? UIImage(named: "sample-chart") ?? PlaceholderChart.render(size: chartSize)
         let drawingPNG = canvasView.drawing.image(
             from: CGRect(origin: .zero, size: chartSize),
             scale: 1
@@ -350,6 +350,9 @@ struct ContentView: View {
             drawingPNG: drawingPNG,
             hazards: hazards,
             ntms: notes,
+            measurements: measurements,
+            projection: currentProjection,
+            chartId: currentChart.id,
             generatedAt: .now
         )
 

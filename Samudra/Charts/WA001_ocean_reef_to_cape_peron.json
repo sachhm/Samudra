@@ -1,10 +1,10 @@
 {
   "projection": { "type": "utm", "zone": 50, "hemisphere": "south" },
   "wgs84_corners": {
-    "top_left":     { "lat": -31.75, "lon": 115.65 },
-    "top_right":    { "lat": -31.75, "lon": 115.85 },
-    "bottom_left":  { "lat": -32.30, "lon": 115.65 },
-    "bottom_right": { "lat": -32.30, "lon": 115.85 }
+    "top_left":     { "lat": -31.7333, "lon": 115.4167 },
+    "top_right":    { "lat": -31.7333, "lon": 115.8500 },
+    "bottom_left":  { "lat": -32.2667, "lon": 115.4167 },
+    "bottom_right": { "lat": -32.2667, "lon": 115.8500 }
   },
   "pixel_corners": {
     "top_left":     [120, 80],

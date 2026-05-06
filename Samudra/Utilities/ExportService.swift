@@ -93,22 +93,101 @@ enum ExportService {
     // MARK: - JSON
 
     private static func exportJSON(_ payload: ExportPayload) throws -> ExportResult {
+        struct AnnotationCoord: Codable {
+            let lat: Double
+            let lon: Double
+        }
+        struct HazardEntry: Codable {
+            let id: String
+            let center_px: [CGFloat]
+            let radius_px: CGFloat
+            let wgs84: AnnotationCoord?
+        }
+        struct NTMEntry: Codable {
+            let id: String
+            let position_px: [CGFloat]
+            let text: String
+            let wgs84: AnnotationCoord?
+        }
+        struct MeasurementEntry: Codable {
+            let id: String
+            let a_px: [CGFloat]
+            let b_px: [CGFloat]
+            let a_wgs84: AnnotationCoord?
+            let b_wgs84: AnnotationCoord?
+            let meters: Double?
+            let nautical_miles: Double?
+            let bearing_true_degrees: Double?
+        }
         struct JSONEnvelope: Codable {
             let schemaVersion: Int
             let generatedAt: Date
+            let chartId: String
             let chartSize: CGSizeCodable
             let metadata: VoyageMetadata
-            let hazards: [HazardAnnotation]
-            let ntms: [NTMAnnotation]
+            let hazards: [HazardEntry]
+            let ntms: [NTMEntry]
+            let measurements: [MeasurementEntry]
+        }
+
+        func coordFor(_ p: CGPoint) -> AnnotationCoord? {
+            guard let proj = payload.projection, proj.contains(p) else { return nil }
+            let c = proj.pixelToLatLon(p)
+            return AnnotationCoord(lat: c.lat, lon: c.lon)
+        }
+
+        let hazards = payload.hazards.map {
+            HazardEntry(
+                id: $0.id.uuidString,
+                center_px: [$0.center.x, $0.center.y],
+                radius_px: $0.radius,
+                wgs84: coordFor($0.center)
+            )
+        }
+        let ntms = payload.ntms.map {
+            NTMEntry(
+                id: $0.id.uuidString,
+                position_px: [$0.position.x, $0.position.y],
+                text: $0.text,
+                wgs84: coordFor($0.position)
+            )
+        }
+        let measurements = payload.measurements.map { m -> MeasurementEntry in
+            let aCoord = coordFor(m.a)
+            let bCoord = coordFor(m.b)
+            let meters: Double?
+            let bearing: Double?
+            if let proj = payload.projection,
+               proj.contains(m.a), proj.contains(m.b) {
+                let cA = proj.pixelToLatLon(m.a)
+                let cB = proj.pixelToLatLon(m.b)
+                meters = Geodesy.distance(cA, cB)
+                bearing = Geodesy.bearing(cA, cB)
+            } else {
+                meters = nil
+                bearing = nil
+            }
+            return MeasurementEntry(
+                id: m.id.uuidString,
+                a_px: [m.a.x, m.a.y],
+                b_px: [m.b.x, m.b.y],
+                a_wgs84: aCoord,
+                b_wgs84: bCoord,
+                meters: meters,
+                nautical_miles: meters.map { $0 / 1852 },
+                bearing_true_degrees: bearing
+            )
         }
 
         let envelope = JSONEnvelope(
-            schemaVersion: 1,
+            schemaVersion: 2,
             generatedAt: payload.generatedAt,
+            chartId: payload.chartId,
             chartSize: CGSizeCodable(width: payload.chartSize.width, height: payload.chartSize.height),
             metadata: payload.metadata,
-            hazards: payload.hazards,
-            ntms: payload.ntms
+            hazards: hazards,
+            ntms: ntms,
+            measurements: measurements
         )
 
         let encoder = JSONEncoder()
@@ -160,6 +239,57 @@ enum ExportService {
                     height: h.radius * 2
                 )
                 ctx.strokeEllipse(in: rect)
+            }
+            ctx.setLineDash(phase: 0, lengths: [])
+
+            // Measurements — dashed blue lines + label
+            let measureColor = UIColor(red: 0.29, green: 0.62, blue: 0.90, alpha: 1)
+            let measureFont = UIFont.systemFont(ofSize: 16, weight: .semibold)
+            ctx.setStrokeColor(measureColor.cgColor)
+            ctx.setLineWidth(3)
+            ctx.setLineDash(phase: 0, lengths: [10, 6])
+            for m in payload.measurements {
+                ctx.move(to: m.a)
+                ctx.addLine(to: m.b)
+                ctx.strokePath()
+                measureColor.setFill()
+                ctx.fillEllipse(in: CGRect(x: m.a.x - 6, y: m.a.y - 6, width: 12, height: 12))
+                ctx.fillEllipse(in: CGRect(x: m.b.x - 6, y: m.b.y - 6, width: 12, height: 12))
+
+                if let proj = payload.projection,
+                   proj.contains(m.a), proj.contains(m.b) {
+                    let cA = proj.pixelToLatLon(m.a)
+                    let cB = proj.pixelToLatLon(m.b)
+                    let meters = Geodesy.distance(cA, cB)
+                    let nm = meters / 1852
+                    let bearing = Geodesy.bearing(cA, cB)
+                    let dist = nm >= 1
+                        ? String(format: "%.2f nm", nm)
+                        : String(format: "%d m", Int(meters.rounded()))
+                    let label = "\(dist) · \(String(format: "%03d", Int(bearing.rounded())))°T" as NSString
+                    let mid = CGPoint(x: (m.a.x + m.b.x) / 2, y: (m.a.y + m.b.y) / 2)
+                    let textSize = label.size(withAttributes: [.font: measureFont])
+                    let padX: CGFloat = 8, padY: CGFloat = 4
+                    let box = CGRect(
+                        x: mid.x - (textSize.width + padX * 2) / 2,
+                        y: mid.y - (textSize.height + padY * 2) / 2,
+                        width: textSize.width + padX * 2,
+                        height: textSize.height + padY * 2
+                    )
+                    let path = UIBezierPath(roundedRect: box, cornerRadius: 6)
+                    UIColor.white.withAlphaComponent(0.92).setFill()
+                    path.fill()
+                    measureColor.withAlphaComponent(0.4).setStroke()
+                    path.lineWidth = 0.8
+                    path.stroke()
+                    label.draw(
+                        at: CGPoint(x: box.minX + padX, y: box.minY + padY),
+                        withAttributes: [
+                            .font: measureFont,
+                            .foregroundColor: UIColor(red: 0.10, green: 0.16, blue: 0.22, alpha: 1)
+                        ]
+                    )
+                }
             }
             ctx.setLineDash(phase: 0, lengths: [])
 
@@ -404,15 +534,20 @@ enum ExportService {
         )
         y += 22
 
+        func coordString(_ p: CGPoint) -> String {
+            guard let proj = payload.projection, proj.contains(p) else {
+                return String(format: "(%.0f, %.0f) px", p.x, p.y)
+            }
+            return CoordinateFormatter.ddm(proj.pixelToLatLon(p))
+        }
+
         if payload.hazards.isEmpty {
             ("— none —" as NSString).draw(at: CGPoint(x: margin, y: y), withAttributes: itemAttrs)
             y += 18
         } else {
             for (i, h) in payload.hazards.enumerated() {
-                let line = String(
-                    format: "%2d. center (%.0f, %.0f) px   radius %.0f px",
-                    i + 1, h.center.x, h.center.y, h.radius
-                )
+                let line = String(format: "%2d. %@   radius %.0f px",
+                                  i + 1, coordString(h.center), h.radius)
                 (line as NSString).draw(at: CGPoint(x: margin, y: y), withAttributes: itemAttrs)
                 y += 18
                 if y > bounds.height - margin - 30 { break }
@@ -431,17 +566,56 @@ enum ExportService {
             y += 18
         } else {
             for (i, n) in payload.ntms.enumerated() {
-                let line = String(
-                    format: "%2d. (%.0f, %.0f) — %@",
-                    i + 1, n.position.x, n.position.y, n.text
-                )
+                let line = String(format: "%2d. %@ — %@",
+                                  i + 1, coordString(n.position), n.text)
                 (line as NSString).draw(at: CGPoint(x: margin, y: y), withAttributes: itemAttrs)
                 y += 18
                 if y > bounds.height - margin - 30 { break }
             }
         }
 
-        ("Coordinates in chart-pixel space. Lat/long projection pending georeferencing." as NSString).draw(
+        y += 12
+        ("Measurements (\(payload.measurements.count))" as NSString).draw(
+            at: CGPoint(x: margin, y: y),
+            withAttributes: sectionAttrs
+        )
+        y += 22
+
+        if payload.measurements.isEmpty {
+            ("— none —" as NSString).draw(at: CGPoint(x: margin, y: y), withAttributes: itemAttrs)
+            y += 18
+        } else {
+            for (i, m) in payload.measurements.enumerated() {
+                let label: String
+                if let proj = payload.projection,
+                   proj.contains(m.a), proj.contains(m.b) {
+                    let cA = proj.pixelToLatLon(m.a)
+                    let cB = proj.pixelToLatLon(m.b)
+                    let meters = Geodesy.distance(cA, cB)
+                    let nm = meters / 1852
+                    let bearing = Geodesy.bearing(cA, cB)
+                    let dist = nm >= 1
+                        ? String(format: "%.2f nm", nm)
+                        : String(format: "%d m", Int(meters.rounded()))
+                    label = String(format: "%2d. %@ → %@ : %@ · %03d°T",
+                                   i + 1,
+                                   CoordinateFormatter.ddm(cA),
+                                   CoordinateFormatter.ddm(cB),
+                                   dist, Int(bearing.rounded()))
+                } else {
+                    label = String(format: "%2d. (%.0f, %.0f) → (%.0f, %.0f) px",
+                                   i + 1, m.a.x, m.a.y, m.b.x, m.b.y)
+                }
+                (label as NSString).draw(at: CGPoint(x: margin, y: y), withAttributes: itemAttrs)
+                y += 18
+                if y > bounds.height - margin - 30 { break }
+            }
+        }
+
+        let projectionNote = payload.projection == nil
+            ? "Coordinates in chart-pixel space (no georef for this chart)."
+            : "Coordinates in WGS84 DDM. Chart projected via UTM Zone 50 South."
+        (projectionNote as NSString).draw(
             at: CGPoint(x: margin, y: bounds.height - margin),
             withAttributes: footerAttrs
         )
