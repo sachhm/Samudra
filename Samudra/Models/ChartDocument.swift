@@ -37,7 +37,12 @@ private struct Manifest: Decodable {
 
 enum ChartCatalog {
     static let all: [ChartDocument] = loadCharts()
-    static var `default`: ChartDocument { all.first! }
+
+    /// Preferred default chart — Rottnest Island if available (recognisable + PDF bundled),
+    /// otherwise first chart in manifest order.
+    static var `default`: ChartDocument {
+        all.first(where: { $0.id == "WA412_rottnest_island" }) ?? all.first!
+    }
 
     /// Look up a chart by id; nil if not present.
     static func chart(id: String) -> ChartDocument? {

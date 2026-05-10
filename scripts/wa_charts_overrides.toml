@@ -1,0 +1,41 @@
+# Per-chart corner refinements that supersede ArcGIS-derived bounds.
+# Keys match `filename` (sidecar stem without `.json`/`.pdf` extension).
+#
+# Use this when:
+#   - ArcGIS feature service rectangle doesn't tightly match the printed
+#     graticule (margins, title-block intrusion).
+#   - Manual pdftotext-based extraction has yielded more precise corners.
+#   - You need to pin a specific UTM zone different from centroid-derived.
+#
+# Schema per [[override]]:
+#   filename            = string matching sidecar stem
+#   wgs84_top_left      = [lat, lon] (decimal degrees)
+#   wgs84_top_right     = [lat, lon]
+#   wgs84_bottom_left   = [lat, lon]
+#   wgs84_bottom_right  = [lat, lon]
+#   pixel_corners       = [left, top, right, bottom]  (optional)
+#   projection_zone     = int  (optional, overrides centroid-derived UTM zone)
+
+[[override]]
+filename = "WA412_rottnest_island"
+wgs84_top_left     = [-31.9333, 115.4167]
+wgs84_top_right    = [-31.9333, 115.6333]
+wgs84_bottom_left  = [-32.0500, 115.4167]
+wgs84_bottom_right = [-32.0500, 115.6333]
+pixel_corners      = [120, 80, 3456, 2440]
+
+[[override]]
+filename = "WA001_ocean_reef_to_cape_peron"
+wgs84_top_left     = [-31.7333, 115.4167]
+wgs84_top_right    = [-31.7333, 115.8500]
+wgs84_bottom_left  = [-32.2667, 115.4167]
+wgs84_bottom_right = [-32.2667, 115.8500]
+pixel_corners      = [120, 80, 3456, 2440]
+
+[[override]]
+filename = "WA913_cape_peron_to_dawesville"
+wgs84_top_left     = [-32.2167, 115.4667]
+wgs84_top_right    = [-32.2167, 115.7500]
+wgs84_bottom_left  = [-32.6333, 115.4667]
+wgs84_bottom_right = [-32.6333, 115.7500]
+pixel_corners      = [120, 80, 3456, 2440]

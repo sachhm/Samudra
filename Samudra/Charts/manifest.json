@@ -2,25 +2,382 @@
   "version": 1,
   "charts": [
     {
-      "id": "WA412",
-      "code": "WA412",
-      "displayName": "Rottnest Island",
-      "pdf": "WA412_rottnest_island.pdf",
-      "georef": "WA412_rottnest_island.json"
+      "id": "DMH019_peaceful_bay",
+      "code": "DMH 019",
+      "displayName": "Peaceful Bay",
+      "pdf": "DMH019_peaceful_bay.pdf",
+      "georef": "DMH019_peaceful_bay.json"
     },
     {
-      "id": "WA001",
-      "code": "WA001",
+      "id": "DMH329_green_islands",
+      "code": "DMH 329",
+      "displayName": "Green Islands",
+      "pdf": "DMH329_green_islands.pdf",
+      "georef": "DMH329_green_islands.json"
+    },
+    {
+      "id": "DMH337_wilson_inlet",
+      "code": "DMH 337",
+      "displayName": "Wilson Inlet",
+      "pdf": "DMH337_wilson_inlet.pdf",
+      "georef": "DMH337_wilson_inlet.json"
+    },
+    {
+      "id": "DMH422_cervantes",
+      "code": "DMH 422",
+      "displayName": "Cervantes",
+      "pdf": "DMH422_cervantes.pdf",
+      "georef": "DMH422_cervantes.json"
+    },
+    {
+      "id": "DMH628_green_head",
+      "code": "DMH 628",
+      "displayName": "Green Head",
+      "pdf": "DMH628_green_head.pdf",
+      "georef": "DMH628_green_head.json"
+    },
+    {
+      "id": "DMH698_hardy_inlet",
+      "code": "DMH 698",
+      "displayName": "Hardy Inlet",
+      "pdf": "DMH698_hardy_inlet.pdf",
+      "georef": "DMH698_hardy_inlet.json"
+    },
+    {
+      "id": "PWDWA53375_lake_argyle",
+      "code": "PWD WA 53375",
+      "displayName": "Lake Argyle",
+      "pdf": "PWDWA53375_lake_argyle.pdf",
+      "georef": "PWDWA53375_lake_argyle.json"
+    },
+    {
+      "id": "WA001_ocean_reef_to_cape_peron",
+      "code": "WA 001",
       "displayName": "Ocean Reef to Cape Peron",
       "pdf": "WA001_ocean_reef_to_cape_peron.pdf",
       "georef": "WA001_ocean_reef_to_cape_peron.json"
     },
     {
-      "id": "WA913",
-      "code": "WA913",
+      "id": "WA1046_nornalup_inlet",
+      "code": "WA 1046",
+      "displayName": "Nornalup Inlet",
+      "pdf": "WA1046_nornalup_inlet.pdf",
+      "georef": "WA1046_nornalup_inlet.json"
+    },
+    {
+      "id": "WA1071_two_rocks",
+      "code": "WA 1071",
+      "displayName": "Two Rocks",
+      "pdf": "WA1071_two_rocks.pdf",
+      "georef": "WA1071_two_rocks.json"
+    },
+    {
+      "id": "WA1076_yanchep",
+      "code": "WA 1076",
+      "displayName": "Yanchep",
+      "pdf": "WA1076_yanchep.pdf",
+      "georef": "WA1076_yanchep.json"
+    },
+    {
+      "id": "WA1083_albany",
+      "code": "WA 1083",
+      "displayName": "Albany",
+      "pdf": "WA1083_albany.pdf",
+      "georef": "WA1083_albany.json"
+    },
+    {
+      "id": "WA1104_hopetoun",
+      "code": "WA 1104",
+      "displayName": "Hopetoun",
+      "pdf": "WA1104_hopetoun.pdf",
+      "georef": "WA1104_hopetoun.json"
+    },
+    {
+      "id": "WA1108_coral_bay",
+      "code": "WA 1108",
+      "displayName": "Coral Bay",
+      "pdf": "WA1108_coral_bay.pdf",
+      "georef": "WA1108_coral_bay.json"
+    },
+    {
+      "id": "WA1110_guilderton",
+      "code": "WA 1110",
+      "displayName": "Guilderton",
+      "pdf": "WA1110_guilderton.pdf",
+      "georef": "WA1110_guilderton.json"
+    },
+    {
+      "id": "WA1119_seabird",
+      "code": "WA 1119",
+      "displayName": "Seabird",
+      "pdf": "WA1119_seabird.pdf",
+      "georef": "WA1119_seabird.json"
+    },
+    {
+      "id": "WA1276_lancelin",
+      "code": "WA 1276",
+      "displayName": "Lancelin",
+      "pdf": "WA1276_lancelin.pdf",
+      "georef": "WA1276_lancelin.json"
+    },
+    {
+      "id": "WA1681_augusta",
+      "code": "WA 1681",
+      "displayName": "Augusta",
+      "pdf": "WA1681_augusta.pdf",
+      "georef": "WA1681_augusta.json"
+    },
+    {
+      "id": "WA25-398_quinns_rocks",
+      "code": "WA 25-398",
+      "displayName": "Quinns Rocks",
+      "pdf": "WA25-398_quinns_rocks.pdf",
+      "georef": "WA25-398_quinns_rocks.json"
+    },
+    {
+      "id": "WA25-399_trigg",
+      "code": "WA 25-399",
+      "displayName": "Trigg",
+      "pdf": "WA25-399_trigg.pdf",
+      "georef": "WA25-399_trigg.json"
+    },
+    {
+      "id": "WA412_rottnest_island",
+      "code": "WA 412",
+      "displayName": "Rottnest Island",
+      "pdf": "WA412_rottnest_island.pdf",
+      "georef": "WA412_rottnest_island.json"
+    },
+    {
+      "id": "WA661_shark_bay",
+      "code": "WA 661",
+      "displayName": "Shark Bay",
+      "pdf": "WA661_shark_bay.pdf",
+      "georef": "WA661_shark_bay.json"
+    },
+    {
+      "id": "WA705_leeman",
+      "code": "WA 705",
+      "displayName": "Leeman",
+      "pdf": "WA705_leeman.pdf",
+      "georef": "WA705_leeman.json"
+    },
+    {
+      "id": "WA713_gregory",
+      "code": "WA 713",
+      "displayName": "Gregory",
+      "pdf": "WA713_gregory.pdf",
+      "georef": "WA713_gregory.json"
+    },
+    {
+      "id": "WA722_shoal_point",
+      "code": "WA 722",
+      "displayName": "Shoal Point",
+      "pdf": "WA722_shoal_point.pdf",
+      "georef": "WA722_shoal_point.json"
+    },
+    {
+      "id": "WA728_beagle_islands",
+      "code": "WA 728",
+      "displayName": "Beagle Islands",
+      "pdf": "WA728_beagle_islands.pdf",
+      "georef": "WA728_beagle_islands.json"
+    },
+    {
+      "id": "WA736_freshwater",
+      "code": "WA 736",
+      "displayName": "Freshwater",
+      "pdf": "WA736_freshwater.pdf",
+      "georef": "WA736_freshwater.json"
+    },
+    {
+      "id": "WA755_bouvard",
+      "code": "WA 755",
+      "displayName": "Bouvard",
+      "pdf": "WA755_bouvard.pdf",
+      "georef": "WA755_bouvard.json"
+    },
+    {
+      "id": "WA765_wedge",
+      "code": "WA 765",
+      "displayName": "Wedge",
+      "pdf": "WA765_wedge.pdf",
+      "georef": "WA765_wedge.json"
+    },
+    {
+      "id": "WA767_dide_bay",
+      "code": "WA 767",
+      "displayName": "Dide Bay",
+      "pdf": "WA767_dide_bay.pdf",
+      "georef": "WA767_dide_bay.json"
+    },
+    {
+      "id": "WA776_preston_to_bunbury",
+      "code": "WA 776",
+      "displayName": "Preston to Bunbury",
+      "pdf": "WA776_preston_to_bunbury.pdf",
+      "georef": "WA776_preston_to_bunbury.json"
+    },
+    {
+      "id": "WA848_peel_inlet_and_harvey_estuary",
+      "code": "WA 848",
+      "displayName": "Peel Inlet and Harvey Estuary",
+      "pdf": "WA848_peel_inlet_and_harvey_estuary.pdf",
+      "georef": "WA848_peel_inlet_and_harvey_estuary.json"
+    },
+    {
+      "id": "WA859_bunbury_to_port_geographe",
+      "code": "WA 859",
+      "displayName": "Bunbury to Port Geographe",
+      "pdf": "WA859_bunbury_to_port_geographe.pdf",
+      "georef": "WA859_bunbury_to_port_geographe.json"
+    },
+    {
+      "id": "WA898_swan_and_canning_rivers",
+      "code": "WA 898",
+      "displayName": "Swan and Canning Rivers",
+      "pdf": "WA898_swan_and_canning_rivers.pdf",
+      "georef": "WA898_swan_and_canning_rivers.json"
+    },
+    {
+      "id": "WA900_exmouth",
+      "code": "WA 900",
+      "displayName": "Exmouth",
+      "pdf": "WA900_exmouth.pdf",
+      "georef": "WA900_exmouth.json"
+    },
+    {
+      "id": "WA909_bremer_bay",
+      "code": "WA 909",
+      "displayName": "Bremer Bay",
+      "pdf": "WA909_bremer_bay.pdf",
+      "georef": "WA909_bremer_bay.json"
+    },
+    {
+      "id": "WA913_cape_peron_to_dawesville",
+      "code": "WA 913",
       "displayName": "Cape Peron to Dawesville",
       "pdf": "WA913_cape_peron_to_dawesville.pdf",
       "georef": "WA913_cape_peron_to_dawesville.json"
+    },
+    {
+      "id": "WA937_african_reef",
+      "code": "WA 937",
+      "displayName": "African Reef",
+      "pdf": "WA937_african_reef.pdf",
+      "georef": "WA937_african_reef.json"
+    },
+    {
+      "id": "WA938_greenough",
+      "code": "WA 938",
+      "displayName": "Greenough",
+      "pdf": "WA938_greenough.pdf",
+      "georef": "WA938_greenough.json"
+    },
+    {
+      "id": "WA939_geraldton",
+      "code": "WA 939",
+      "displayName": "Geraldton",
+      "pdf": "WA939_geraldton.pdf",
+      "georef": "WA939_geraldton.json"
+    },
+    {
+      "id": "WA940_oakajee",
+      "code": "WA 940",
+      "displayName": "Oakajee",
+      "pdf": "WA940_oakajee.pdf",
+      "georef": "WA940_oakajee.json"
+    },
+    {
+      "id": "WA945_flat_rocks",
+      "code": "WA 945",
+      "displayName": "Flat Rocks",
+      "pdf": "WA945_flat_rocks.pdf",
+      "georef": "WA945_flat_rocks.json"
+    },
+    {
+      "id": "WA947_jurien_bay",
+      "code": "WA 947",
+      "displayName": "Jurien Bay",
+      "pdf": "WA947_jurien_bay.pdf",
+      "georef": "WA947_jurien_bay.json"
+    },
+    {
+      "id": "WA957_trigg",
+      "code": "WA 957",
+      "displayName": "Trigg (Inset)",
+      "pdf": "WA957_trigg.pdf",
+      "georef": "WA957_trigg.json"
+    },
+    {
+      "id": "WA963_dongara_-_port_denison",
+      "code": "WA 963",
+      "displayName": "Dongara - Port Denison",
+      "pdf": "WA963_dongara_-_port_denison.pdf",
+      "georef": "WA963_dongara_-_port_denison.json"
+    },
+    {
+      "id": "WA966_cape_naturaliste",
+      "code": "WA 966",
+      "displayName": "Cape Naturaliste",
+      "pdf": "WA966_cape_naturaliste.pdf",
+      "georef": "WA966_cape_naturaliste.json"
+    },
+    {
+      "id": "WA975_white_point",
+      "code": "WA 975",
+      "displayName": "White Point",
+      "pdf": "WA975_white_point.pdf",
+      "georef": "WA975_white_point.json"
+    },
+    {
+      "id": "WA976_kalbarri",
+      "code": "WA 976",
+      "displayName": "Kalbarri",
+      "pdf": "WA976_kalbarri.pdf",
+      "georef": "WA976_kalbarri.json"
+    },
+    {
+      "id": "WA977_bowes",
+      "code": "WA 977",
+      "displayName": "Bowes",
+      "pdf": "WA977_bowes.pdf",
+      "georef": "WA977_bowes.json"
+    },
+    {
+      "id": "WA978_horrocks",
+      "code": "WA 978",
+      "displayName": "Horrocks",
+      "pdf": "WA978_horrocks.pdf",
+      "georef": "WA978_horrocks.json"
+    },
+    {
+      "id": "WA979_cliffhead",
+      "code": "WA 979",
+      "displayName": "Cliffhead",
+      "pdf": "WA979_cliffhead.pdf",
+      "georef": "WA979_cliffhead.json"
+    },
+    {
+      "id": "WA982_carnarvon",
+      "code": "WA 982",
+      "displayName": "Carnarvon",
+      "pdf": "WA982_carnarvon.pdf",
+      "georef": "WA982_carnarvon.json"
+    },
+    {
+      "id": "WA998_houtman_abrolhos_-_easter_group",
+      "code": "WA 998",
+      "displayName": "Houtman Abrolhos - Easter Group",
+      "pdf": "WA998_houtman_abrolhos_-_easter_group.pdf",
+      "georef": "WA998_houtman_abrolhos_-_easter_group.json"
+    },
+    {
+      "id": "WA999_houtman_abrolhos_-_wallabi_group",
+      "code": "WA 999",
+      "displayName": "Houtman Abrolhos - Wallabi Group",
+      "pdf": "WA999_houtman_abrolhos_-_wallabi_group.pdf",
+      "georef": "WA999_houtman_abrolhos_-_wallabi_group.json"
     }
   ]
 }
