@@ -1,17 +1,22 @@
 import SwiftUI
+import PencilKit
 
 struct AnnotationOverlay: View {
     @Binding var hazards: [HazardAnnotation]
-    @Binding var notes: [NoteAnnotation]
+    @Binding var notes: [NTMAnnotation]
     let tool: ToolMode
     let chartSize: CGSize
+    let canvasView: PKCanvasView
     @Binding var editingNoteID: UUID?
     @Binding var pendingNoteText: String
     @Binding var showNoteEditor: Bool
+    let onEraseInk: (CGPoint) -> Void
+
+    private let eraserRadius: CGFloat = 28
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // Hit layer — only active when placing hazard/note
+            // Placement layer for hazard/note tools
             if tool == .hazard || tool == .note {
                 Color.clear
                     .contentShape(Rectangle())
@@ -20,14 +25,22 @@ struct AnnotationOverlay: View {
                     }
             }
 
+            // Eraser drag layer — eats touches, drags erase annotations + ink
+            if tool == .eraser {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .gesture(eraserDrag)
+            }
+
             ForEach(hazards) { hazard in
                 HazardCircle(hazard: hazard)
                     .position(hazard.center)
                     .gesture(dragGesture(for: hazard))
+                    .allowsHitTesting(tool == .hazard || tool == .note)
             }
 
             ForEach(notes) { note in
-                NotePin(note: note)
+                NTMPin(note: note)
                     .position(note.position)
                     .gesture(dragGesture(for: note))
                     .onTapGesture {
@@ -35,10 +48,26 @@ struct AnnotationOverlay: View {
                         pendingNoteText = note.text
                         showNoteEditor = true
                     }
+                    .allowsHitTesting(tool == .hazard || tool == .note)
             }
         }
         .frame(width: chartSize.width, height: chartSize.height)
-        .allowsHitTesting(tool != .route && tool != .eraser)
+    }
+
+    private var eraserDrag: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                eraseAt(value.location)
+            }
+    }
+
+    private func eraseAt(_ point: CGPoint) {
+        // Hazards: remove if point within radius
+        hazards.removeAll { hypot($0.center.x - point.x, $0.center.y - point.y) <= $0.radius }
+        // Notes: remove if point within ~40pt of pin position
+        notes.removeAll { hypot($0.position.x - point.x, $0.position.y - point.y) <= 40 }
+        // Ink: erase strokes within eraserRadius
+        onEraseInk(point)
     }
 
     private func handleTap(at location: CGPoint) {
@@ -46,7 +75,7 @@ struct AnnotationOverlay: View {
         case .hazard:
             hazards.append(HazardAnnotation(center: location))
         case .note:
-            let note = NoteAnnotation(position: location, text: "Note")
+            let note = NTMAnnotation(position: location, text: "NTM")
             notes.append(note)
             editingNoteID = note.id
             pendingNoteText = note.text
@@ -64,7 +93,7 @@ struct AnnotationOverlay: View {
             }
     }
 
-    private func dragGesture(for note: NoteAnnotation) -> some Gesture {
+    private func dragGesture(for note: NTMAnnotation) -> some Gesture {
         DragGesture()
             .onChanged { value in
                 guard let idx = notes.firstIndex(of: note) else { return }
@@ -88,8 +117,8 @@ private struct HazardCircle: View {
     }
 }
 
-private struct NotePin: View {
-    let note: NoteAnnotation
+private struct NTMPin: View {
+    let note: NTMAnnotation
 
     var body: some View {
         VStack(spacing: 4) {

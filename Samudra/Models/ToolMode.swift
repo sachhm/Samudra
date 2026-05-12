@@ -12,7 +12,7 @@ enum ToolMode: String, CaseIterable, Identifiable {
         switch self {
         case .route: "Plot Route"
         case .hazard: "Mark Hazard"
-        case .note: "Add Note"
+        case .note: "Add NTM"
         case .eraser: "Eraser"
         }
     }
@@ -36,7 +36,7 @@ enum ToolMode: String, CaseIterable, Identifiable {
     }
 
     var usesPencilKit: Bool {
-        self == .route || self == .eraser
+        self == .route
     }
 }
 

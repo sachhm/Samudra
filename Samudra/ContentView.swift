@@ -6,7 +6,7 @@ struct ContentView: View {
     @State private var tool: ToolMode = .route
     @State private var canvasView = PKCanvasView()
     @State private var hazards: [HazardAnnotation] = []
-    @State private var notes: [NoteAnnotation] = []
+    @State private var notes: [NTMAnnotation] = []
     @State private var canUndo: Bool = false
     @State private var canRedo: Bool = false
 
@@ -18,7 +18,7 @@ struct ContentView: View {
     @State private var showShareSheet: Bool = false
     @State private var showClearAlert: Bool = false
 
-    private let chartSize = CGSize(width: 2048, height: 1536)
+    private let chartSize = CGSize(width: 4096, height: 2893)
 
     var body: some View {
         ZStack {
@@ -42,9 +42,11 @@ struct ContentView: View {
                         notes: $notes,
                         tool: tool,
                         chartSize: chartSize,
+                        canvasView: canvasView,
                         editingNoteID: $editingNoteID,
                         pendingNoteText: $pendingNoteText,
-                        showNoteEditor: $showNoteEditor
+                        showNoteEditor: $showNoteEditor,
+                        onEraseInk: eraseInk
                     )
                 }
                 .frame(width: chartSize.width, height: chartSize.height)
@@ -70,10 +72,10 @@ struct ContentView: View {
             canvasView.delegate = CanvasDelegateBridge.shared
             CanvasDelegateBridge.shared.onChange = { refreshUndo() }
         }
-        .alert("Edit Note", isPresented: $showNoteEditor) {
-            TextField("Note", text: $pendingNoteText)
+        .alert("Notice to Mariner", isPresented: $showNoteEditor) {
+            TextField("Description", text: $pendingNoteText)
             Button("Cancel", role: .cancel) {
-                if let id = editingNoteID, let note = notes.first(where: { $0.id == id }), note.text == "Note" {
+                if let id = editingNoteID, let note = notes.first(where: { $0.id == id }), note.text == "NTM" {
                     notes.removeAll { $0.id == id }
                 }
                 editingNoteID = nil
@@ -109,6 +111,15 @@ struct ContentView: View {
     private var chartImage: Image {
         let ui = UIImage(named: "sample-chart") ?? PlaceholderChart.render(size: chartSize)
         return Image(uiImage: ui)
+    }
+
+    private func eraseInk(at point: CGPoint) {
+        let radius: CGFloat = 28
+        let eraseRect = CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)
+        let remaining = canvasView.drawing.strokes.filter { !$0.renderBounds.intersects(eraseRect) }
+        if remaining.count != canvasView.drawing.strokes.count {
+            canvasView.drawing = PKDrawing(strokes: remaining)
+        }
     }
 
     private func refreshUndo() {

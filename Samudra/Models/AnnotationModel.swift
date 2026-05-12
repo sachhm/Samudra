@@ -12,18 +12,19 @@ struct HazardAnnotation: Identifiable, Equatable {
     }
 }
 
-struct NoteAnnotation: Identifiable, Equatable {
+/// Notice To Mariner (NTM)
+struct NTMAnnotation: Identifiable, Equatable {
     let id = UUID()
     var position: CGPoint
     var text: String
 
-    func moved(to newPosition: CGPoint) -> NoteAnnotation {
+    func moved(to newPosition: CGPoint) -> NTMAnnotation {
         var copy = self
         copy.position = newPosition
         return copy
     }
 
-    func with(text newText: String) -> NoteAnnotation {
+    func with(text newText: String) -> NTMAnnotation {
         var copy = self
         copy.text = newText
         return copy

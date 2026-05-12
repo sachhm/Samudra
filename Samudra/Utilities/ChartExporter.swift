@@ -8,7 +8,7 @@ enum ChartExporter {
         chartImage: UIImage,
         drawing: PKDrawing,
         hazards: [HazardAnnotation],
-        notes: [NoteAnnotation],
+        notes: [NTMAnnotation],
         size: CGSize
     ) -> UIImage? {
         let renderer = ImageRenderer(content:

@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "sample-chart.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
