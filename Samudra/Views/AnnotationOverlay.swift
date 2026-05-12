@@ -35,7 +35,7 @@ struct AnnotationOverlay: View {
                     .gesture(eraserDrag)
             }
 
-            // Measurements (committed)
+            // Measurements — visual layer (lines + labels, no hit-test)
             ForEach(Array(measurements.enumerated()), id: \.element.id) { idx, m in
                 MeasurementMark(
                     measurement: m,
@@ -44,6 +44,23 @@ struct AnnotationOverlay: View {
                     selected: draggingID == m.id
                 )
                 .allowsHitTesting(false)
+            }
+
+            // Measurements — draggable endpoint handles (only hit-tested in measure mode)
+            ForEach(Array(measurements.enumerated()), id: \.element.id) { idx, m in
+                Group {
+                    MeasureEndpointHandle(selected: draggingID == m.id)
+                        .position(m.a)
+                        .gesture(measureEndpointDrag(id: m.id, endpoint: .a))
+                        .accessibilityLabel("Measurement \(idx + 1) point A")
+                        .accessibilityHint("Drag to reposition")
+                    MeasureEndpointHandle(selected: draggingID == m.id)
+                        .position(m.b)
+                        .gesture(measureEndpointDrag(id: m.id, endpoint: .b))
+                        .accessibilityLabel("Measurement \(idx + 1) point B")
+                        .accessibilityHint("Drag to reposition")
+                }
+                .allowsHitTesting(tool == .measure)
             }
 
             // Pending measurement first endpoint
@@ -138,15 +155,17 @@ struct AnnotationOverlay: View {
             showNoteEditor = true
             UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         case .measure:
+            // Snap tap to nearest existing endpoint within range — enables chaining.
+            let placement = snapToEndpoint(location) ?? location
             if let a = pendingMeasureA {
-                let m = Measurement(a: a, b: location)
+                let m = Measurement(a: a, b: placement)
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                     measurements.append(m)
                 }
                 pendingMeasureA = nil
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             } else {
-                pendingMeasureA = location
+                pendingMeasureA = placement
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }
         default:
@@ -172,6 +191,41 @@ struct AnnotationOverlay: View {
                 notes[idx] = notes[idx].moved(to: value.location)
             }
             .onEnded { _ in draggingID = nil }
+    }
+
+    // MARK: - Measurement endpoint manipulation
+
+    private enum MeasurementEndpoint { case a, b }
+
+    private func measureEndpointDrag(id: UUID, endpoint: MeasurementEndpoint) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                guard let idx = measurements.firstIndex(where: { $0.id == id }) else { return }
+                draggingID = id
+                let snapped = snapToEndpoint(value.location, excludingMeasurementId: id) ?? value.location
+                switch endpoint {
+                case .a: measurements[idx] = measurements[idx].movedA(to: snapped)
+                case .b: measurements[idx] = measurements[idx].movedB(to: snapped)
+                }
+            }
+            .onEnded { _ in draggingID = nil }
+    }
+
+    /// Returns the nearest existing measurement endpoint within snap range, or nil.
+    /// Snap range scales with chart resolution — ~40 chart-pixels = ~28pt at 1.5× rasterizer.
+    private func snapToEndpoint(_ p: CGPoint, excludingMeasurementId: UUID? = nil) -> CGPoint? {
+        let threshold: CGFloat = 40
+        var best: (point: CGPoint, dist: CGFloat)? = nil
+        for m in measurements {
+            if m.id == excludingMeasurementId { continue }
+            for candidate in [m.a, m.b] {
+                let d = hypot(candidate.x - p.x, candidate.y - p.y)
+                if d <= threshold, best == nil || d < best!.dist {
+                    best = (candidate, d)
+                }
+            }
+        }
+        return best?.point
     }
 }
 
@@ -320,16 +374,6 @@ private struct MeasurementMark: View {
                 style: StrokeStyle(lineWidth: 2, dash: [6, 4])
             )
 
-            // Endpoint markers
-            Circle()
-                .fill(ChartPalette.routeBlue)
-                .frame(width: 10, height: 10)
-                .position(measurement.a)
-            Circle()
-                .fill(ChartPalette.routeBlue)
-                .frame(width: 10, height: 10)
-                .position(measurement.b)
-
             if let labelText {
                 Text(labelText)
                     .font(.caption2.weight(.semibold))
@@ -362,6 +406,39 @@ private struct MeasurePendingMark: View {
                 .font(.system(size: 9, weight: .bold))
                 .foregroundStyle(ChartPalette.routeBlue)
                 .offset(y: -14)
+        }
+    }
+}
+
+/// Draggable endpoint handle for a committed measurement.
+/// Visible filled dot at endpoint with an enlarged transparent hit area
+/// so finger/pencil can grab + drag the handle without pixel-perfect aim.
+private struct MeasureEndpointHandle: View {
+    let selected: Bool
+    private let visibleSize: CGFloat = 14
+    private let hitSize: CGFloat = 36
+
+    var body: some View {
+        ZStack {
+            // Hit target (transparent, enlarged)
+            Circle()
+                .fill(Color.white.opacity(0.001))
+                .frame(width: hitSize, height: hitSize)
+                .contentShape(Circle())
+
+            // Selection ring
+            if selected {
+                Circle()
+                    .strokeBorder(ChartPalette.routeBlue.opacity(0.5), lineWidth: 1.5)
+                    .frame(width: visibleSize + 10, height: visibleSize + 10)
+            }
+
+            // Visible dot
+            Circle()
+                .fill(ChartPalette.routeBlue)
+                .overlay(Circle().strokeBorder(Color.white.opacity(0.9), lineWidth: 1.5))
+                .frame(width: visibleSize, height: visibleSize)
+                .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
         }
     }
 }
