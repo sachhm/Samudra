@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct HazardAnnotation: Identifiable, Equatable {
-    let id = UUID()
+struct HazardAnnotation: Identifiable, Equatable, Codable {
+    var id = UUID()
     var center: CGPoint
     var radius: CGFloat = 50
 
@@ -13,8 +13,8 @@ struct HazardAnnotation: Identifiable, Equatable {
 }
 
 /// Notice To Mariner (NTM)
-struct NTMAnnotation: Identifiable, Equatable {
-    let id = UUID()
+struct NTMAnnotation: Identifiable, Equatable, Codable {
+    var id = UUID()
     var position: CGPoint
     var text: String
 

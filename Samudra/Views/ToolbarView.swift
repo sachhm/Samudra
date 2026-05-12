@@ -10,68 +10,29 @@ struct ToolbarView: View {
     let canRedo: Bool
 
     var body: some View {
-        HStack(spacing: 16) {
+        VStack(spacing: 6) {
             ForEach(ToolMode.allCases) { mode in
-                toolButton(mode)
+                ToolOrb(mode: mode, active: tool == mode, diameter: 46) {
+                    withAnimation(.snappy) {
+                        tool = mode
+                    }
+                }
             }
 
-            Divider()
-                .frame(height: 32)
-                .overlay(ChartPalette.border)
+            MenuDivider(orientation: .horizontal)
+                .padding(.vertical, 2)
 
-            iconButton(symbol: "arrow.uturn.backward", enabled: canUndo, action: onUndo)
-            iconButton(symbol: "arrow.uturn.forward", enabled: canRedo, action: onRedo)
-            iconButton(symbol: "trash", enabled: true, action: onClear)
+            GlassDisc(symbol: "arrow.uturn.backward", enabled: canUndo, label: "Undo", action: onUndo)
+            GlassDisc(symbol: "arrow.uturn.forward", enabled: canRedo, label: "Redo", action: onRedo)
+            GlassDisc(symbol: "trash", role: .destructive, label: "Clear", action: onClear)
 
-            Divider()
-                .frame(height: 32)
-                .overlay(ChartPalette.border)
+            MenuDivider(orientation: .horizontal)
+                .padding(.vertical, 2)
 
-            iconButton(symbol: "square.and.arrow.up", enabled: true, action: onExport)
+            GlassDisc(symbol: "square.and.arrow.up", label: "Export", action: onExport)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(ChartPalette.surface)
-                .shadow(color: .black.opacity(0.4), radius: 12, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(ChartPalette.border, lineWidth: 1)
-        )
-    }
-
-    private func toolButton(_ mode: ToolMode) -> some View {
-        let active = mode == tool
-        return Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            tool = mode
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: mode.symbol)
-                    .font(.system(size: 18, weight: .semibold))
-                Text(mode.title)
-                    .font(.system(size: 10, weight: .medium))
-            }
-            .foregroundStyle(active ? ChartPalette.navy : ChartPalette.textPrimary)
-            .frame(width: 72, height: 52)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(active ? mode.tint : Color.clear)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func iconButton(symbol: String, enabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 17, weight: .semibold))
-                .frame(width: 40, height: 40)
-                .foregroundStyle(enabled ? ChartPalette.textPrimary : ChartPalette.textSecondary.opacity(0.5))
-        }
-        .disabled(!enabled)
-        .buttonStyle(.plain)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 6)
+        .glassEffect(.regular, in: Capsule())
     }
 }

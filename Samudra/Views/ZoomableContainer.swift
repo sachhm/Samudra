@@ -4,6 +4,8 @@ struct ZoomableContainer<Content: View>: UIViewRepresentable {
     let contentSize: CGSize
     let minScale: CGFloat
     let maxScale: CGFloat
+    @Binding var zoomScale: CGFloat
+    @Binding var fitScale: CGFloat
     @ViewBuilder let content: () -> Content
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -16,7 +18,7 @@ struct ZoomableContainer<Content: View>: UIViewRepresentable {
         scroll.showsHorizontalScrollIndicator = false
         scroll.showsVerticalScrollIndicator = false
         scroll.delegate = context.coordinator
-        scroll.backgroundColor = UIColor(ChartPalette.navy)
+        scroll.backgroundColor = .systemBackground
         scroll.contentInsetAdjustmentBehavior = .never
 
         let host = UIHostingController(rootView: content())
@@ -31,6 +33,8 @@ struct ZoomableContainer<Content: View>: UIViewRepresentable {
         DispatchQueue.main.async {
             fitContent(scroll: scroll)
         }
+        context.coordinator.zoomBinding = $zoomScale
+        context.coordinator.fitBinding = $fitScale
         return scroll
     }
 
@@ -45,6 +49,10 @@ struct ZoomableContainer<Content: View>: UIViewRepresentable {
         let fit = min(xScale, yScale)
         scroll.minimumZoomScale = fit
         scroll.zoomScale = fit
+        DispatchQueue.main.async {
+            fitScale = fit
+            zoomScale = fit
+        }
         centerContent(scroll: scroll)
     }
 
@@ -68,6 +76,8 @@ struct ZoomableContainer<Content: View>: UIViewRepresentable {
     final class Coordinator: NSObject, UIScrollViewDelegate {
         var hostingController: UIHostingController<Content>?
         weak var contentView: UIView?
+        var zoomBinding: Binding<CGFloat>?
+        var fitBinding: Binding<CGFloat>?
 
         func viewForZooming(in scrollView: UIScrollView) -> UIView? {
             contentView
@@ -76,6 +86,7 @@ struct ZoomableContainer<Content: View>: UIViewRepresentable {
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
             guard let contentView else { return }
             ZoomableContainer.centerContent(scroll: scrollView, contentView: contentView)
+            zoomBinding?.wrappedValue = scrollView.zoomScale
         }
     }
 }

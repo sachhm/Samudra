@@ -3,7 +3,7 @@ import PencilKit
 import UIKit
 
 struct ContentView: View {
-    @State private var tool: ToolMode = .route
+    @State private var tool: ToolMode = .draw
     @State private var canvasView = PKCanvasView()
     @State private var hazards: [HazardAnnotation] = []
     @State private var notes: [NTMAnnotation] = []
@@ -14,17 +14,44 @@ struct ContentView: View {
     @State private var pendingNoteText: String = ""
     @State private var showNoteEditor: Bool = false
 
-    @State private var exportImage: UIImage?
+    @State private var exportItems: [Any] = []
     @State private var showShareSheet: Bool = false
     @State private var showClearAlert: Bool = false
 
+    @State private var showExportSheet: Bool = false
+    @State private var voyageMetadata: VoyageMetadata = .empty
+    @State private var exportErrorMessage: String?
+
+    @State private var zoomScale: CGFloat = 1
+    @State private var fitScale: CGFloat = 1
+
+    @State private var showArc: Bool = false
+    @State private var pencilLocation: CGPoint?
+    @State private var arcCenter: CGPoint = .zero
+    @State private var screenSize: CGSize = .zero
+
     private let chartSize = CGSize(width: 4096, height: 2893)
+    private let chartName = "WA412 ROTTNEST IS."
 
     var body: some View {
+        GeometryReader { geo in
+            content
+                .onAppear { screenSize = geo.size }
+                .onChange(of: geo.size) { _, newSize in screenSize = newSize }
+        }
+    }
+
+    private var content: some View {
         ZStack {
             ChartPalette.navy.ignoresSafeArea()
 
-            ZoomableContainer(contentSize: chartSize, minScale: 0.2, maxScale: 4.0) {
+            ZoomableContainer(
+                contentSize: chartSize,
+                minScale: 0.2,
+                maxScale: 4.0,
+                zoomScale: $zoomScale,
+                fitScale: $fitScale
+            ) {
                 ZStack {
                     chartImage
                         .resizable()
@@ -32,7 +59,6 @@ struct ContentView: View {
 
                     ChartCanvasView(
                         canvasView: $canvasView,
-                        tool: tool,
                         allowDrawing: tool.usesPencilKit
                     )
                     .frame(width: chartSize.width, height: chartSize.height)
@@ -53,8 +79,16 @@ struct ContentView: View {
             }
             .ignoresSafeArea()
 
-            VStack {
-                Spacer()
+            // Pencil hover tracker (receives hover events only; touches pass through)
+            PencilHoverTracker(location: $pencilLocation)
+                .ignoresSafeArea()
+
+            // Pencil squeeze listener (transparent UIPencilInteraction host)
+            PencilSqueezeListener(onSqueeze: openOrMoveArc)
+                .allowsHitTesting(false)
+
+            // Rail — always visible
+            HStack {
                 ToolbarView(
                     tool: $tool,
                     onUndo: { canvasView.undoManager?.undo(); refreshUndo() },
@@ -64,9 +98,39 @@ struct ContentView: View {
                     canUndo: canUndo,
                     canRedo: canRedo
                 )
-                .padding(.bottom, 24)
+                .padding(.leading, 18)
+                Spacer()
             }
-            .padding(.horizontal, 24)
+
+            // Arc — pops at pencil location on squeeze; rail unaffected
+            if showArc {
+                Color.black.opacity(0.0001)
+                    .ignoresSafeArea()
+                    .onTapGesture { dismissArc() }
+                    .transition(.opacity)
+
+                ArcToolMenu(
+                    center: arcCenter,
+                    screenSize: screenSize,
+                    tool: $tool,
+                    onSelect: dismissArc
+                )
+                .ignoresSafeArea()
+            }
+
+            // Top HUD bar
+            VStack {
+                HUDView(
+                    tool: tool,
+                    hazardCount: hazards.count,
+                    ntmCount: notes.count,
+                    zoomPercent: zoomPercent,
+                    chartName: chartName
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                Spacer()
+            }
         }
         .onAppear {
             canvasView.delegate = CanvasDelegateBridge.shared
@@ -101,11 +165,59 @@ struct ContentView: View {
                 refreshUndo()
             }
         }
+        .sheet(isPresented: $showExportSheet) {
+            ExportSheet(
+                metadata: $voyageMetadata,
+                hazardCount: hazards.count,
+                ntmCount: notes.count,
+                onExport: handleExport(format:),
+                onCancel: { showExportSheet = false }
+            )
+        }
         .sheet(isPresented: $showShareSheet) {
-            if let image = exportImage {
-                ShareSheet(items: [image])
+            if !exportItems.isEmpty {
+                ShareSheet(items: exportItems)
             }
         }
+        .alert("Export failed", isPresented: Binding(
+            get: { exportErrorMessage != nil },
+            set: { if !$0 { exportErrorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { exportErrorMessage = nil }
+        } message: {
+            Text(exportErrorMessage ?? "")
+        }
+    }
+
+    /// Squeeze handler — always opens arc at current pencil location.
+    /// If already open, relocates to new pencil position.
+    private func openOrMoveArc() {
+        let newCenter = pencilLocation ?? CGPoint(
+            x: screenSize.width * 0.30,
+            y: screenSize.height * 0.55
+        )
+        UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
+        if showArc {
+            withAnimation(.snappy) {
+                arcCenter = newCenter
+            }
+        } else {
+            arcCenter = newCenter
+            withAnimation(.snappy) {
+                showArc = true
+            }
+        }
+    }
+
+    private func dismissArc() {
+        withAnimation(.snappy) {
+            showArc = false
+        }
+    }
+
+    private var zoomPercent: Int {
+        guard fitScale > 0 else { return 100 }
+        return Int((zoomScale / fitScale) * 100)
     }
 
     private var chartImage: Image {
@@ -128,16 +240,33 @@ struct ContentView: View {
     }
 
     private func exportChart() {
+        showExportSheet = true
+    }
+
+    private func handleExport(format: ExportFormat) {
         let baseImage = UIImage(named: "sample-chart") ?? PlaceholderChart.render(size: chartSize)
-        if let snap = ChartExporter.snapshot(
+        let drawingPNG = canvasView.drawing.image(
+            from: CGRect(origin: .zero, size: chartSize),
+            scale: 1
+        )
+        let payload = ExportPayload(
+            metadata: voyageMetadata,
+            format: format,
             chartImage: baseImage,
-            drawing: canvasView.drawing,
+            chartSize: chartSize,
+            drawingPNG: drawingPNG,
             hazards: hazards,
-            notes: notes,
-            size: chartSize
-        ) {
-            exportImage = snap
+            ntms: notes,
+            generatedAt: .now
+        )
+
+        do {
+            let result = try ExportService.export(payload)
+            exportItems = [result.fileURL]
+            showExportSheet = false
             showShareSheet = true
+        } catch {
+            exportErrorMessage = "Export skeleton — \(format.label) handler not wired yet."
         }
     }
 }
