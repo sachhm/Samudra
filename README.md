@@ -2,7 +2,7 @@
 
 iPad app for marking up nautical charts with the Apple Pencil.
 
-![Samudra](docs/hero.png)
+![Samudra](hero.png)
 
 Draw routes, drop hazard rings and notes, measure distance and bearing
 between two points. Annotations carry real WGS84 coordinates because the

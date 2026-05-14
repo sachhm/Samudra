@@ -1,0 +1,5 @@
+scripts/push_next.sh
+scripts/push_schedule.txt
+.DS_Store
+xcuserdata/
+*.xcuserstate
