@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C447643D2FB5C9AB00F0577C /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = C447643C2FB5C9AB00F0577C /* README.md */; };
+		C447643E2FB5C9AB00F0577C /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = C447643B2FB5C9AB00F0577C /* LICENSE */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C4ADE46C2FB35BAB00FAF9E9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +29,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C447643B2FB5C9AB00F0577C /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		C447643C2FB5C9AB00F0577C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C4ADE45C2FB35BAB00FAF9E9 /* Samudra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Samudra.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4ADE46B2FB35BAB00FAF9E9 /* SamudraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SamudraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4ADE4752FB35BAB00FAF9E9 /* SamudraUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SamudraUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -76,6 +83,8 @@
 		C4ADE4532FB35BAB00FAF9E9 = {
 			isa = PBXGroup;
 			children = (
+				C447643B2FB5C9AB00F0577C /* LICENSE */,
+				C447643C2FB5C9AB00F0577C /* README.md */,
 				C4ADE4882FB35BE000FAF9E9 /* CLAUDE.md */,
 				C4ADE45E2FB35BAB00FAF9E9 /* Samudra */,
 				C4ADE46E2FB35BAB00FAF9E9 /* SamudraTests */,
@@ -214,6 +223,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C447643D2FB5C9AB00F0577C /* README.md in Resources */,
+				C447643E2FB5C9AB00F0577C /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
