@@ -9,7 +9,8 @@ enum ChartExporter {
         drawing: PKDrawing,
         hazards: [HazardAnnotation],
         notes: [NTMAnnotation],
-        size: CGSize
+        size: CGSize,
+        displayScale: CGFloat
     ) -> UIImage? {
         let renderer = ImageRenderer(content:
             ZStack {
@@ -42,7 +43,9 @@ enum ChartExporter {
             }
             .frame(width: size.width, height: size.height)
         )
-        renderer.scale = UIScreen.main.scale
+        
+        renderer.scale = displayScale
+        
         return renderer.uiImage
     }
 }
